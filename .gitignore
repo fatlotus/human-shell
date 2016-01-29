@@ -1,2 +1,4 @@
 *Temp*
 .DS_Store
+*.log
+*Cache*
