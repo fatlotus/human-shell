@@ -12,10 +12,10 @@ public class ClientAnimation : NetworkBehaviour {
 	StreamWriter 	theWriter;
 	StreamReader 	theReader;
 	private Animator clientAnim;
+	private Vector3 leftHand, rightHand;
 
 	// Use this for initialization
 	void Start () {
-		print ("Attached script.");
 		mySocket 	= new TcpClient ("linux3.cs.uchicago.edu", 9000);
 		theStream 	= mySocket.GetStream();
 		theWriter 	= new StreamWriter(theStream);
@@ -25,33 +25,34 @@ public class ClientAnimation : NetworkBehaviour {
 	}
 
 	// Update is called once per frame
-	void OnAnimatorIK() {
+	void Update() {
 		while (theStream.DataAvailable) {
 			string reading = theReader.ReadLine ();
-			print (reading);
 			string[] parts = reading.Split (new Char[] { ' ' });
 			Vector3 pos = new Vector3(float.Parse(parts [2]), float.Parse(parts [3]), float.Parse(parts [4]))/1000.0f;
 
-
 			switch (parts [0]) {
-				case "head":
-					break;
-				case "lefthand":
-					clientAnim.SetIKPositionWeight (AvatarIKGoal.LeftHand, 1);
-					clientAnim.SetIKPosition(AvatarIKGoal.LeftHand, pos);
-					break;
-				case "righthand":
-					clientAnim.SetIKPositionWeight (AvatarIKGoal.RightHand, 1);
-					clientAnim.SetIKPosition(AvatarIKGoal.RightHand, pos);
-					break;
-				case "leftshoulder":
-					break;
-				case "rightshoulder":
-					break;
+			case "head":
+				break;
+			case "lefthand":
+				leftHand = pos;
+				break;
+			case "righthand":
+				rightHand = pos;
+				break;
+			case "leftshoulder":
+				break;
+			case "rightshoulder":
+				break;
 			}
 		}
+	}
 
-		if (!isLocalPlayer)
-			return;
+	void OnAnimatorIK(int layerIndex) {
+		clientAnim.SetIKPositionWeight (AvatarIKGoal.LeftHand, 1);
+		clientAnim.SetIKPosition(AvatarIKGoal.LeftHand, leftHand);
+
+		clientAnim.SetIKPositionWeight (AvatarIKGoal.RightHand, 1);
+		clientAnim.SetIKPosition(AvatarIKGoal.RightHand, rightHand);
 	}
 }
