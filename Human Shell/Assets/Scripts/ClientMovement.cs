@@ -4,12 +4,14 @@ using UnityEngine.Networking;
 
 public class ClientMovement : NetworkBehaviour {
 
+	private GameObject cardboard;
 	private GameObject camera;
 	private float moveScale = 0.1f;
 
 	// Use this for initialization
 	void Start () {
-		camera = GameObject.Find ("Scene_Cardboard");
+		cardboard = GameObject.Find ("Scene_Cardboard");
+		camera = cardboard.transform.GetChild (0).gameObject;
 	}
 	
 	// Update is called once per frame
@@ -18,10 +20,17 @@ public class ClientMovement : NetworkBehaviour {
 			return;
 		}
 
-		var x = Input.GetAxis ("Horizontal") * moveScale;
-		var z = Input.GetAxis ("Vertical") * moveScale;
+		//var x = Input.GetAxis ("Horizontal") * moveScale;
+		//var z = Input.GetAxis ("Vertical") * moveScale;
 
-		transform.Translate (x, 0, z);
-		camera.transform.Translate (x, 0, z);
+		Vector3 LeftRight		= Input.GetAxis("Vertical") * Vector3.Normalize(camera.transform.forward) * moveScale;
+		Vector3 ForwardBack 	= Input.GetAxis("Horizontal") * Vector3.Normalize(camera.transform.right) * moveScale;
+
+
+		transform.Translate (LeftRight);
+		transform.Translate (ForwardBack);
+
+		cardboard.transform.Translate (LeftRight);
+		cardboard.transform.Translate (ForwardBack);
 	}
 }
