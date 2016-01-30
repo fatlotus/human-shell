@@ -11,6 +11,10 @@ public class ClientAnimation : NetworkBehaviour {
 	NetworkStream 	theStream;
 	StreamWriter 	theWriter;
 	StreamReader 	theReader;
+
+	private GameObject cardboard;
+	private GameObject camera;
+
 	private Animator clientAnim;
 	private Vector3 leftHand, rightHand;
 
@@ -22,6 +26,9 @@ public class ClientAnimation : NetworkBehaviour {
 		theReader 	= new StreamReader(theStream);
 
 		clientAnim = GetComponent<Animator>();
+
+		cardboard = GameObject.Find ("Scene_Cardboard");
+		camera = cardboard.transform.GetChild (0).gameObject;
 	}
 
 	// Update is called once per frame
@@ -54,5 +61,14 @@ public class ClientAnimation : NetworkBehaviour {
 
 		clientAnim.SetIKPositionWeight (AvatarIKGoal.RightHand, 1);
 		clientAnim.SetIKPosition(AvatarIKGoal.RightHand, rightHand);
+
+		clientAnim.bodyRotation = Quaternion.Euler (
+			camera.transform.rotation.eulerAngles.x,
+			camera.transform.rotation.eulerAngles.y,
+			0
+		);
+
+		clientAnim.SetLookAtPosition (clientAnim.bodyPosition + new Vector3(0f, 0.5f, 0f) + camera.transform.forward);
+		clientAnim.SetLookAtWeight (1);
 	}
 }
