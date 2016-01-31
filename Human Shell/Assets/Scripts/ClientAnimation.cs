@@ -63,7 +63,7 @@ public class ClientAnimation : NetworkBehaviour {
 		clientAnim.SetIKPosition(AvatarIKGoal.RightHand, rightHand);
 
 		clientAnim.bodyRotation = Quaternion.Euler (
-			camera.transform.rotation.eulerAngles.x,
+			0,
 			camera.transform.rotation.eulerAngles.y,
 			0
 		);
