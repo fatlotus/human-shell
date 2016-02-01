@@ -26,11 +26,9 @@ public class ClientMovement : NetworkBehaviour {
 		Vector3 LeftRight		= Input.GetAxis("Vertical") * Vector3.Normalize(camera.transform.forward) * moveScale;
 		Vector3 ForwardBack 	= Input.GetAxis("Horizontal") * Vector3.Normalize(camera.transform.right) * moveScale;
 
-
-		transform.Translate (LeftRight);
-		transform.Translate (ForwardBack);
-
 		cardboard.transform.Translate (LeftRight);
 		cardboard.transform.Translate (ForwardBack);
+
+		transform.position = cardboard.transform.position + new Vector3(0, -1f, 0.2f);
 	}
 }
