@@ -17,6 +17,9 @@ public class ClientAnimation : NetworkBehaviour {
 
 	private Animator clientAnim;
 	private Vector3 leftHand, rightHand, torso, leftFoot, rightFoot;
+	private Vector3 leftShoulder, rightShoulder, leftHip, rightHip;
+
+	private float moveScale = 0.1f;
 
 	// Use this for initialization
 	void Start () {
@@ -50,8 +53,24 @@ public class ClientAnimation : NetworkBehaviour {
 				rightHand = pos * 0.5f + rightHand * 0.5f;
 				break;
 			case "leftshoulder":
+				leftShoulder = pos;
 				break;
 			case "rightshoulder":
+				rightShoulder = pos;
+				break;
+			case "leftelbow":
+				break;
+			case "rightelbow":
+				break;
+			case "leftknee":
+				break;
+			case "rightknee":
+				break;
+			case "lefthip":
+				leftHip = pos;
+				break;
+			case "righthip":
+				rightHip = pos;
 				break;
 			case "torso":
 				torso = pos;
@@ -62,8 +81,37 @@ public class ClientAnimation : NetworkBehaviour {
 			case "rightfoot":
 				rightFoot = pos;
 				break;
+			default:
+				print (parts [0]);
+				cardboard.transform.position = new Vector3 (100, 100, 100);
+				break;
 			}
 		}
+
+		if (!isLocalPlayer) {
+			return;
+		}
+
+		//var x = Input.GetAxis ("Horizontal") * moveScale;
+		//var z = Input.GetAxis ("Vertical") * moveScale;
+
+		Vector3 LeftRight		= Input.GetAxis("Vertical") * Vector3.Normalize(camera.transform.forward) * moveScale;
+		Vector3 ForwardBack 	= Input.GetAxis("Horizontal") * Vector3.Normalize(camera.transform.right) * moveScale;
+
+		cardboard.transform.Translate (LeftRight);
+		cardboard.transform.Translate (ForwardBack);
+
+		Vector3 shoulders = (leftShoulder + rightShoulder) / 2;
+		Vector3 hips = (leftHip + rightHip) / 2;
+		Vector3 motion = (shoulders - hips) * 2.0f;
+		motion.y = 0;
+
+		print (motion);
+	
+		if (motion.magnitude >= 0.05)
+			cardboard.transform.Translate (motion);
+
+		transform.position = cardboard.transform.position + new Vector3(0, -1.3f, 0.2f);
 	}
 
 	void OnAnimatorIK(int layerIndex) {
