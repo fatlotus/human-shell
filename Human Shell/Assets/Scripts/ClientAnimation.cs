@@ -79,12 +79,14 @@ public class ClientAnimation : NetworkBehaviour {
 		clientAnim.SetIKPositionWeight (AvatarIKGoal.RightFoot, 1);
 		clientAnim.SetIKPosition(AvatarIKGoal.RightFoot, clientAnim.bodyPosition + (leftFoot - torso));
 
-
+		if (!isLocalPlayer)
+			return;
+		
 		clientAnim.bodyRotation = Quaternion.Euler (
 			0,
 			camera.transform.rotation.eulerAngles.y,
 			0
-		);
+			);
 
 		clientAnim.SetLookAtPosition (clientAnim.bodyPosition + new Vector3(0f, 0.5f, 0f) + camera.transform.forward);
 		clientAnim.SetLookAtWeight (1);

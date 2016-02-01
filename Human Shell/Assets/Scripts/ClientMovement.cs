@@ -29,6 +29,6 @@ public class ClientMovement : NetworkBehaviour {
 		cardboard.transform.Translate (LeftRight);
 		cardboard.transform.Translate (ForwardBack);
 
-		transform.position = cardboard.transform.position + new Vector3(0, -1f, 0.2f);
+		transform.position = cardboard.transform.position + new Vector3(0, -1.3f, 0.2f);
 	}
 }
