@@ -65,6 +65,11 @@ void send(int user, String joint, int model) {
   client.write(joint + " " + pos.x + " " + pos.y + " " + pos.z + "\n");
 }
 
+void reset(String joint) {
+  PVector pos = new PVector(0, 0, 0);
+  client.write(joint + " " + pos.x + " " + pos.y + " " + pos.z + "\n");
+}
+
 void draw()
 {
   // update the cam
@@ -100,7 +105,22 @@ void draw()
     }
   }
   if (!any) {
-    client.write("remove\n");
+    reset("head");
+    reset("lefthand");
+    reset("righthand");
+    reset("leftelbow");
+    reset("rightelbow");
+    reset("leftshoulder");
+    reset("rightshoulder");
+    
+    reset("leftfoot");
+    reset("rightfoot");
+    reset("leftknee");
+    reset("rightknee");
+    reset("lefthip");
+    reset("righthip");
+    
+    reset("torso");
   }
 }
 
