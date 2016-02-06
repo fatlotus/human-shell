@@ -14,12 +14,22 @@ public class AnimatorGestures : MonoBehaviour {
 	}
 
 	struct ClientData {
-		
+		int kinect_id;
+		Vector3 head,
+			lefthand, righthand,
+			leftshoulder, rightshoulder,
+			leftelbow, rightelbow,
+			leftknee, rightknee,
+			lefthip, righthip,
+			torso,
+			leftfoot, rightfoot;
 	}
 
-	bool SyncGesture (ClientData kin) {
-		if (/* the position of the left hand to the head; should be radial */) {
-			
+	bool ClickPosition (ClientData kin) {
+		if ((kin.lefthand - kin.head).magnitude <= 0.5) {
+			return true;
 		}
+
+		return false;
 	}
 }
