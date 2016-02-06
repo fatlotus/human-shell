@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Gun : MonoBehaviour {
+public class ClientSelection : MonoBehaviour {
 
 	void OnEnable () {
 		Cardboard.SDK.OnTrigger += TriggerPulled;

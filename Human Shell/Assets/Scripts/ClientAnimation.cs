@@ -106,7 +106,7 @@ public class ClientAnimation : NetworkBehaviour {
 		Vector3 motion = (shoulders - hips) * 0.4f;
 		motion.y = 0;
 
-		print (motion);
+		//print (motion);
 	
 		if (motion.magnitude >= 0.05)
 			cardboard.transform.Translate (motion);
