@@ -103,7 +103,7 @@ public class ClientAnimation : NetworkBehaviour {
 
 		Vector3 shoulders = (leftShoulder + rightShoulder) / 2;
 		Vector3 hips = (leftHip + rightHip) / 2;
-		Vector3 motion = (shoulders - hips) * 2.0f;
+		Vector3 motion = (shoulders - hips) * 0.4f;
 		motion.y = 0;
 
 		print (motion);
