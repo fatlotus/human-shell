@@ -111,7 +111,6 @@
      <Compile Include="Assets\NatureStarterKit2\Standard Assets\Effects\ImageEffects\Scripts\Twirl.cs" />
      <Compile Include="Assets\NatureStarterKit2\Standard Assets\Effects\ImageEffects\Scripts\VignetteAndChromaticAberration.cs" />
      <Compile Include="Assets\NatureStarterKit2\Standard Assets\Effects\ImageEffects\Scripts\Vortex.cs" />
-     <Compile Include="Assets\Scripts\AnimatorGestures.cs" />
      <Compile Include="Assets\Scripts\AutoStartServer.cs" />
      <Compile Include="Assets\Scripts\ClientAnimation.cs" />
      <Compile Include="Assets\Scripts\ClientSelection.cs" />

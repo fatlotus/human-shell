@@ -19,6 +19,8 @@ public class ClientAnimation : NetworkBehaviour {
 	private Vector3 leftHand, rightHand, torso, leftFoot, rightFoot;
 	private Vector3 leftShoulder, rightShoulder, leftHip, rightHip;
 
+	private CharacterController characterController;
+
 	private float moveScale = 0.1f;
 
 	// Use this for initialization
@@ -29,6 +31,7 @@ public class ClientAnimation : NetworkBehaviour {
 		theReader 	= new StreamReader(theStream);
 
 		clientAnim = GetComponent<Animator>();
+		characterController = GetComponent<CharacterController> ();
 
 		cardboard = GameObject.Find ("Scene_Cardboard");
 		camera = cardboard.transform.GetChild (0).gameObject;
@@ -36,6 +39,7 @@ public class ClientAnimation : NetworkBehaviour {
 
 	// Update is called once per frame
 	void Update() {
+		print ("start loop");
 		while (theStream.DataAvailable) {
 			string reading = theReader.ReadLine ();
 			string[] parts = reading.Split (new Char[] { ' ' });
@@ -87,31 +91,42 @@ public class ClientAnimation : NetworkBehaviour {
 				break;
 			}
 		}
+		print ("end loop");
 
+		/*
 		if (!isLocalPlayer) {
 			return;
 		}
+		*/
 
 		//var x = Input.GetAxis ("Horizontal") * moveScale;
 		//var z = Input.GetAxis ("Vertical") * moveScale;
 
-		Vector3 LeftRight		= Input.GetAxis("Vertical") * Vector3.Normalize(camera.transform.forward) * moveScale;
-		Vector3 ForwardBack 	= Input.GetAxis("Horizontal") * Vector3.Normalize(camera.transform.right) * moveScale;
+		Vector3 LeftRight		= Input.GetAxis("Vertical") * Vector3.Normalize(camera.transform.forward);
+		Vector3 ForwardBack 	= Input.GetAxis("Horizontal") * Vector3.Normalize(camera.transform.right);
 
-		cardboard.transform.Translate (LeftRight);
-		cardboard.transform.Translate (ForwardBack);
+		// <Shamelessly stolen from Unity Standard Assets.>
+
+		// always move along the camera forward as it is the direction that it being aimed at
+		Vector3 desiredMove = (ForwardBack + LeftRight) * moveScale;
+
+		characterController.Move (desiredMove);
+
 
 		Vector3 shoulders = (leftShoulder + rightShoulder) / 2;
 		Vector3 hips = (leftHip + rightHip) / 2;
 		Vector3 motion = (shoulders - hips) * 0.4f;
 		motion.y = 0;
 
+		if (motion.magnitude >= 0.05)
+			transform.Translate (motion);
+	
+		cardboard.transform.position = transform.position - new Vector3(0, -1.3f, 0.2f);
+
+		// </ShamelesslyStolen>
+
 		//print (motion);
 	
-		if (motion.magnitude >= 0.05)
-			cardboard.transform.Translate (motion);
-
-		transform.position = cardboard.transform.position + new Vector3(0, -1.3f, 0.2f);
 	}
 
 	void OnAnimatorIK(int layerIndex) {
