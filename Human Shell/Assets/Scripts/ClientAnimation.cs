@@ -108,10 +108,15 @@ public class ClientAnimation : NetworkBehaviour {
 		// <Shamelessly stolen from Unity Standard Assets.>
 
 		// always move along the camera forward as it is the direction that it being aimed at
-		Vector3 desiredMove = (ForwardBack + LeftRight) * moveScale;
+		Vector3 desiredMove = (ForwardBack + LeftRight);
+
+		// get a normal for the surface that is being touched to move along it
+		RaycastHit hitInfo;
+		Physics.SphereCast(transform.position, characterController.radius, Vector3.down, out hitInfo,
+			characterController.height/2f, ~0, QueryTriggerInteraction.Ignore);
+		desiredMove = Vector3.ProjectOnPlane(desiredMove, hitInfo.normal).normalized  * moveScale;
 
 		characterController.Move (desiredMove);
-
 
 		Vector3 shoulders = (leftShoulder + rightShoulder) / 2;
 		Vector3 hips = (leftHip + rightHip) / 2;
