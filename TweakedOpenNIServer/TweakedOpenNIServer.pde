@@ -59,6 +59,10 @@ void setup()
 
  }
 
+/*
+ * First body part:   lefthand
+ * Final body part:   head
+ */
 void send(int user, String joint, int model) {
   PVector pos = new PVector();
   context.getJointPositionSkeleton(user, model, pos);
@@ -78,8 +82,7 @@ void draw()
   // draw the skeleton if it's available
   int[] userList = context.getUsers();
   boolean any = false;
-  for(int i=0;i<userList.length;i++)
-  {
+  for (int i = 0; i < userList.length; i++) {
      
     if(context.isTrackingSkeleton(userList[i])) {
       println("Got data!");

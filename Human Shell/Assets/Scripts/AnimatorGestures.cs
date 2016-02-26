@@ -9,65 +9,65 @@ using System;
 /*
  * GESTURES
  */
-	public enum GestureSecResult {
-		Failed,
-		Succeeded
+public enum GestureSecResult {
+	Failed,
+	Succeeded
+}
+
+public interface GestureSegment {
+	GestureSecResult Update (KinectData client);
+}
+
+public class SkiPoleRaise : GestureSegment {
+	public GestureSecResult Update (KinectData client) {
+		float allowedErr = 0.05f;
+
+		if ((client.righthand.y > client.rightelbow.y)
+			&& (client.lefthand.y > client.leftelbow.y)
+			&& ( client.righthand.x - client.rightelbow.x <= allowedErr )
+			&& ( client.lefthand.x - client.leftelbow.x <= allowedErr ) )
+			return GestureSecResult.Succeeded;
+		return GestureSecResult.Failed;
 	}
+}
 
-	public interface GestureSegment {
-		GestureSecResult Update (KinectData client);
+public class SkiPoleDig : GestureSegment {
+	public GestureSecResult Update (KinectData client) {
+		float allowedErr = 0.05f;
+	
+		if ((client.righthand.y < client.rightelbow.y)
+			&& (client.lefthand.y < client.leftelbow.y)
+			&& ( client.righthand.x - client.rightelbow.x <= allowedErr )
+			&& ( client.lefthand.x - client.leftelbow.x <= allowedErr ) )
+			return GestureSecResult.Succeeded;
+		return GestureSecResult.Failed;
 	}
+}
 
-	public class SkiPoleRaise : GestureSegment {
-		public GestureSecResult Update (KinectData client) {
-			float allowedErr = 0.05f;
-
-			if ((client.righthand.y > client.rightelbow.y)
-				&& (client.lefthand.y > client.leftelbow.y)
-				&& ( client.righthand.x - client.rightelbow.x <= allowedErr )
-				&& ( client.lefthand.x - client.leftelbow.x <= allowedErr ) )
-				return GestureSecResult.Succeeded;
-			return GestureSecResult.Failed;
-		}
+public class ClickCardboard : GestureSegment {
+	public GestureSecResult Update (KinectData client) {
+		float allowedErr = 0.05f;
+	
+		if ((client.lefthand - client.head).magnitude <= allowedErr)
+			return GestureSecResult.Succeeded;
+		return GestureSecResult.Failed;
 	}
+}
 
-	public class SkiPoleDig : GestureSegment {
-		public GestureSecResult Update (KinectData client) {
-			float allowedErr = 0.05f;
+public class BeginSkiing {
+	readonly int WINDOW_SIZE = 50;
+	int frameCount = 0;
 
-			if ((client.righthand.y < client.rightelbow.y)
-				&& (client.lefthand.y < client.leftelbow.y)
-				&& ( client.righthand.x - client.rightelbow.x <= allowedErr )
-				&& ( client.lefthand.x - client.leftelbow.x <= allowedErr ) )
-				return GestureSecResult.Succeeded;
-			return GestureSecResult.Failed;
-		}
+	List<GestureSegment> segments;
+	int currSegment = 0;
+
+	public event EventHandler GestureRecognized;
+
+	public BeginSkiing () {
+		segments.Add (new SkiPoleRaise ());
+		segments.Add (new SkiPoleDig ());
 	}
-
-	public class ClickCardboard : GestureSegment {
-		public GestureSecResult Update (KinectData client) {
-			float allowedErr = 0.05f;
-
-			if ((client.lefthand - client.head).magnitude <= allowedErr)
-				return GestureSecResult.Succeeded;
-			return GestureSecResult.Failed;
-		}
-	}
-
-	public class BeginSkiing {
-		readonly int WINDOW_SIZE = 50;
-		int frameCount = 0;
-
-		List<GestureSegment> segments;
-		int currSegment = 0;
-
-		public event EventHandler GestureRecognized;
-
-		public BeginSkiing () {
-			segments.Add (new SkiPoleRaise ());
-			segments.Add (new SkiPoleDig ());
-		}
-	}
+}
 /*
 	public void Update (KinectData client) {
 		GestureSecResult result = segments[currSegment].Update(client);
@@ -190,8 +190,9 @@ public class AnimatorGestures : NetworkBehaviour {
             string reading = theReader.ReadLine ();
             string[] parts = reading.Split (new Char[] {' '});
 
-			int currKinectID = int.Parse (parts [2]);
+			int currKinectID = (int)float.Parse (parts [2]);
             if (!kinectInfo.ContainsKey (currKinectID)) {
+				print ("Attempting to add kinect.");
 				kinectInfo.Add( currKinectID, new KinectData () );
             }
 
