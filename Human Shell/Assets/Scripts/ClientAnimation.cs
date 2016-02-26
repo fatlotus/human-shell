@@ -18,6 +18,7 @@ public class ClientAnimation : NetworkBehaviour {
 	private Animator clientAnim;
 	private Vector3 leftHand, rightHand, torso, leftFoot, rightFoot;
 	private Vector3 leftShoulder, rightShoulder, leftHip, rightHip;
+	private Vector3 velocity;
 
 	private CharacterController characterController;
 
@@ -35,11 +36,12 @@ public class ClientAnimation : NetworkBehaviour {
 
 		cardboard = GameObject.Find ("Scene_Cardboard");
 		camera = cardboard.transform.GetChild (0).gameObject;
+
+		velocity = new Vector3 ();
 	}
 
 	// Update is called once per frame
 	void Update() {
-		print ("start loop");
 		while (theStream.DataAvailable) {
 			string reading = theReader.ReadLine ();
 			string[] parts = reading.Split (new Char[] { ' ' });
@@ -91,7 +93,6 @@ public class ClientAnimation : NetworkBehaviour {
 				break;
 			}
 		}
-		print ("end loop");
 
 		/*
 		if (!isLocalPlayer) {
@@ -108,13 +109,22 @@ public class ClientAnimation : NetworkBehaviour {
 		// <Shamelessly stolen from Unity Standard Assets.>
 
 		// always move along the camera forward as it is the direction that it being aimed at
-		Vector3 desiredMove = (ForwardBack + LeftRight);
+		Vector3 desiredMove = (ForwardBack + LeftRight).normalized + velocity;
 
 		// get a normal for the surface that is being touched to move along it
 		RaycastHit hitInfo;
-		Physics.SphereCast(transform.position, characterController.radius, Vector3.down, out hitInfo,
-			characterController.height/2f, ~0, QueryTriggerInteraction.Ignore);
-		desiredMove = Vector3.ProjectOnPlane(desiredMove, hitInfo.normal).normalized  * moveScale;
+		if (Physics.SphereCast (transform.position, characterController.radius, Vector3.down, out hitInfo,
+			    characterController.height / 2f, ~0, QueryTriggerInteraction.Ignore)) {
+			Vector3 gravity = hitInfo.normal;
+			gravity.y = 0;
+			velocity += gravity * 0.02f;
+		} else {
+			velocity += new Vector3 (0, -1, 0);
+		}
+
+
+
+		desiredMove = Vector3.ProjectOnPlane(desiredMove, hitInfo.normal)  * moveScale;
 
 		characterController.Move (desiredMove);
 
