@@ -34,7 +34,7 @@ public class SkiPoleRaise : GestureSegment {
 public class SkiPoleDig : GestureSegment {
 	public GestureSecResult Update (KinectData client) {
 		float allowedErr = 0.05f;
-	
+
 		if ((client.righthand.y < client.rightelbow.y)
 			&& (client.lefthand.y < client.leftelbow.y)
 			&& ( client.righthand.x - client.rightelbow.x <= allowedErr )
@@ -47,7 +47,7 @@ public class SkiPoleDig : GestureSegment {
 public class ClickCardboard : GestureSegment {
 	public GestureSecResult Update (KinectData client) {
 		float allowedErr = 0.05f;
-	
+
 		if ((client.lefthand - client.head).magnitude <= allowedErr)
 			return GestureSecResult.Succeeded;
 		return GestureSecResult.Failed;
@@ -110,17 +110,17 @@ public enum Status {
 */
 public struct KinectData {
 
-//	public void ConstructData (Vector3 v) {
-//		this.connection = Status.FREE;
-//		this.head =
-//			this.lefthand = this.righthand =
-//				this.leftshoulder = this.rightshoulder =
-//					this.leftelbow = this.rightelbow =
-//						this.leftknee = this.rightknee = 
-//							this.lefthip = this.righthip = 
-//								this.torso =
-//									this.leftfoot = this.rightfoot = new Vector3(0.0f, 0.0f, 0.0f);
-//	}
+	//	public void ConstructData (Vector3 v) {
+	//		this.connection = Status.FREE;
+	//		this.head =
+	//			this.lefthand = this.righthand =
+	//				this.leftshoulder = this.rightshoulder =
+	//					this.leftelbow = this.rightelbow =
+	//						this.leftknee = this.rightknee = 
+	//							this.lefthip = this.righthip = 
+	//								this.torso =
+	//									this.leftfoot = this.rightfoot = new Vector3(0.0f, 0.0f, 0.0f);
+	//	}
 
 	public Status         connection;
 	public Vector3 head,
@@ -171,6 +171,9 @@ public class AnimatorGestures : NetworkBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		associationDictionary = new Dictionary<int, int> { };
+		kinectInfo = new Dictionary<int, KinectData> { };
+
 		mySocket 	= new TcpClient ("linux3.cs.uchicago.edu", 9000);
 		theStream 	= mySocket.GetStream();
 		theWriter 	= new StreamWriter(theStream);
@@ -186,68 +189,68 @@ public class AnimatorGestures : NetworkBehaviour {
 	// Update is called once per frame
 	void Update () {
 		//*
-        while (theStream.DataAvailable) {
-            string reading = theReader.ReadLine ();
-            string[] parts = reading.Split (new Char[] {' '});
+		while (theStream.DataAvailable) {
+			string reading = theReader.ReadLine ();
+			string[] parts = reading.Split (new Char[] {' '});
 
-			int currKinectID = (int)float.Parse (parts [2]);
-            if (!kinectInfo.ContainsKey (currKinectID)) {
+			int currKinectID = int.Parse (parts [1]);
+			if (!kinectInfo.ContainsKey (currKinectID)) {
 				print ("Attempting to add kinect.");
 				kinectInfo.Add( currKinectID, new KinectData () );
-            }
+			}
 
 			KinectData temp;
 			kinectInfo.TryGetValue (currKinectID, out temp);
-             
+
 			Vector3 pos = new Vector3 (float.Parse (parts [2]), float.Parse (parts [3]), float.Parse (parts [4])) * Kinect2Unity;
-            pos.x *= -1;
-            pos.z *= -1;
+			pos.x *= -1;
+			pos.z *= -1;
 
-            switch (parts [0]) {
-            case "head":
-                break;
-            case "lefthand":
+			switch (parts [0]) {
+			case "head":
+				break;
+			case "lefthand":
 				temp.lefthand = pos * 0.5f + temp.lefthand * 0.5f;
-                break;
-            case "righthand":
+				break;
+			case "righthand":
 				temp.righthand = pos * 0.5f + temp.righthand * 0.5f;
-                break;
-            case "leftshoulder":
-                temp.leftshoulder = pos;
-                break;
-            case "rightshoulder":
-                temp.rightshoulder = pos;
-                break;
-            case "leftelbow":
-                break;
-            case "rightelbow":
-                break;
-            case "leftknee":
-                break;
-            case "rightknee":
-                break;
-            case "lefthip":
-                temp.lefthip = pos;
-                break;
-            case "righthip":
-                temp.righthip = pos;
-                break;
-            case "torso":
-                temp.torso = pos;
-                break;
-            case "leftfoot":
-                temp.leftfoot = pos;
-                break;
-            case "rightfoot":
-                temp.rightfoot = pos;
-                break;
-            default:
-                print (parts [0]);
-                cardboard.transform.position = new Vector3 (100, 100, 100);
-                break;
-            }
+				break;
+			case "leftshoulder":
+				temp.leftshoulder = pos;
+				break;
+			case "rightshoulder":
+				temp.rightshoulder = pos;
+				break;
+			case "leftelbow":
+				break;
+			case "rightelbow":
+				break;
+			case "leftknee":
+				break;
+			case "rightknee":
+				break;
+			case "lefthip":
+				temp.lefthip = pos;
+				break;
+			case "righthip":
+				temp.righthip = pos;
+				break;
+			case "torso":
+				temp.torso = pos;
+				break;
+			case "leftfoot":
+				temp.leftfoot = pos;
+				break;
+			case "rightfoot":
+				temp.rightfoot = pos;
+				break;
+			default:
+				print (parts [0]);
+				cardboard.transform.position = new Vector3 (100, 100, 100);
+				break;
+			}
 
-        }
+		}
 
 		if (!isLocalPlayer)
 			return;
@@ -329,4 +332,3 @@ public class AnimatorGestures : NetworkBehaviour {
 	}
 	//*/
 }
-
