@@ -4,6 +4,8 @@ using UnityEngine.Networking;
 using System.IO;
 using System.Net.Sockets;
 using System;
+using System.Collections.Generic;
+
 
 public class ClientAnimation : NetworkBehaviour {
 
@@ -19,6 +21,8 @@ public class ClientAnimation : NetworkBehaviour {
 	private Vector3 leftHand, rightHand, torso, leftFoot, rightFoot;
 	private Vector3 leftShoulder, rightShoulder, leftHip, rightHip;
 	private Vector3 velocity;
+	private List<String> kinects;
+	private String myKinect = "";
 
 	private CharacterController characterController;
 
@@ -38,6 +42,8 @@ public class ClientAnimation : NetworkBehaviour {
 		camera = cardboard.transform.GetChild (0).gameObject;
 
 		velocity = new Vector3 ();
+
+		kinects = new List<String> ();
 	}
 
 	// Update is called once per frame
@@ -45,53 +51,69 @@ public class ClientAnimation : NetworkBehaviour {
 		while (theStream.DataAvailable) {
 			string reading = theReader.ReadLine ();
 			string[] parts = reading.Split (new Char[] { ' ' });
+
 			Vector3 pos = new Vector3(float.Parse(parts [2]), float.Parse(parts [3]), float.Parse(parts [4]))/1000.0f;
 			pos.x *= -1;
 			pos.z *= -1;
 
-			switch (parts [0]) {
-			case "head":
-				break;
-			case "lefthand":
-				leftHand = pos * 0.5f + leftHand * 0.5f;
-				break;
-			case "righthand":
-				rightHand = pos * 0.5f + rightHand * 0.5f;
-				break;
-			case "leftshoulder":
-				leftShoulder = pos;
-				break;
-			case "rightshoulder":
-				rightShoulder = pos;
-				break;
-			case "leftelbow":
-				break;
-			case "rightelbow":
-				break;
-			case "leftknee":
-				break;
-			case "rightknee":
-				break;
-			case "lefthip":
-				leftHip = pos;
-				break;
-			case "righthip":
-				rightHip = pos;
-				break;
-			case "torso":
-				torso = pos;
-				break;
-			case "leftfoot":
-				leftFoot = pos;
-				break;
-			case "rightfoot":
-				rightFoot = pos;
-				break;
-			default:
-				print (parts [0]);
-				cardboard.transform.position = new Vector3 (100, 100, 100);
-				break;
-			}
+			if (pos.magnitude == 0) {
+				kinects.Remove (parts [1]);
+
+				if (myKinect == parts [1]) {
+					myKinect = "";
+				}
+			} else {
+				if (!kinects.Contains (parts [1]))
+					kinects.Add (parts [1]);
+
+				if (myKinect == "")
+					myKinect = parts [1];
+			}			
+
+			if (parts[1] == myKinect)
+				switch (parts [0]) {
+				case "head":
+					break;
+				case "lefthand":
+					leftHand = pos * 0.5f + leftHand * 0.5f;
+					break;
+				case "righthand":
+					rightHand = pos * 0.5f + rightHand * 0.5f;
+					break;
+				case "leftshoulder":
+					leftShoulder = pos;
+					break;
+				case "rightshoulder":
+					rightShoulder = pos;
+					break;
+				case "leftelbow":
+					break;
+				case "rightelbow":
+					break;
+				case "leftknee":
+					break;
+				case "rightknee":
+					break;
+				case "lefthip":
+					leftHip = pos;
+					break;
+				case "righthip":
+					rightHip = pos;
+					break;
+				case "torso":
+					torso = pos;
+					break;
+				case "leftfoot":
+					leftFoot = pos;
+					break;
+				case "rightfoot":
+					rightFoot = pos;
+					break;
+				default:
+					print (parts [0]);
+					cardboard.transform.position = new Vector3 (100, 100, 100);
+					break;
+				}
 		}
 
 		/*
@@ -108,10 +130,21 @@ public class ClientAnimation : NetworkBehaviour {
 
 		// <Shamelessly stolen from Unity Standard Assets.>
 
-		velocity += (ForwardBack + LeftRight).normalized * 1f * Time.deltaTime;
 
-		velocity *= Mathf.Pow(0.1f, Time.deltaTime);
 
+		Vector3 shoulders = (leftShoulder + rightShoulder) / 2;
+		Vector3 hips = (leftHip + rightHip) / 2;
+		Vector3 motion = (shoulders - hips) * 0.4f;
+		motion.y = 0;
+
+		if (motion.magnitude <= 0.05)
+			motion = Vector3.zero;
+		
+		velocity += (ForwardBack + LeftRight).normalized * 1f * Time.deltaTime + motion * 10f * Time.deltaTime;
+		Vector3 friction = velocity.normalized;
+		friction.y = 0;
+		velocity -= friction.normalized * Time.deltaTime * 0.1f;
+	
 		// get a normal for the surface that is being touched to move along it
 		RaycastHit hitInfo;
 		if (Physics.SphereCast (transform.position, characterController.radius, Vector3.down, out hitInfo,
@@ -129,20 +162,32 @@ public class ClientAnimation : NetworkBehaviour {
 
 		characterController.Move (desiredMove);
 
-		Vector3 shoulders = (leftShoulder + rightShoulder) / 2;
-		Vector3 hips = (leftHip + rightHip) / 2;
-		Vector3 motion = (shoulders - hips) * 0.4f;
-		motion.y = 0;
+		if (transform.position.y < -700 || transform.position.z < -20) {
+			transform.position = Vector3.zero;
+			velocity = Vector3.zero;
+		}
 
-		if (motion.magnitude >= 0.05)
-			transform.Translate (motion);
-	
 		cardboard.transform.position = transform.position - new Vector3(0, -1.3f, 0.2f);
 
 		// </ShamelesslyStolen>
 
 		//print (motion);
 	
+	}
+
+	void OnEnable(){
+		Cardboard.SDK.OnTrigger += TriggerPulled;
+	}
+
+	void OnDisable(){
+		Cardboard.SDK.OnTrigger -= TriggerPulled;
+	}
+
+	void TriggerPulled() {
+		if (kinects.Count == 0)
+			return;
+		
+		myKinect = kinects[(kinects.FindIndex ((string p) => { return p == myKinect; }) + 1) % kinects.Count];
 	}
 
 	void OnAnimatorIK(int layerIndex) {

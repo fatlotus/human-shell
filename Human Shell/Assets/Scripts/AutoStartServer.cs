@@ -6,7 +6,12 @@ public class AutoStartServer : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		GetComponent<NetworkManager> ().StartHost ();
+		if (Application.platform == RuntimePlatform.Android) {
+			GetComponent<NetworkManager> ().networkAddress = "kakuna.cs.uchicago.edu";
+			GetComponent<NetworkManager> ().StartClient ();
+		} else {
+			GetComponent<NetworkManager> ().StartHost ();
+		}
 	}
 	
 	// Update is called once per frame
