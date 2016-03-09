@@ -20,9 +20,15 @@ public class ClientAnimation : NetworkBehaviour {
 	private Animator clientAnim;
 	private Vector3 leftHand, rightHand, torso, leftFoot, rightFoot;
 	private Vector3 leftShoulder, rightShoulder, leftHip, rightHip;
+
+	[SyncVar]
 	private Vector3 velocity;
+
 	private List<String> kinects;
+
+	[SyncVar]
 	private String myKinect = "";
+	private float lastGood = 0;
 
 	private CharacterController characterController;
 
@@ -48,6 +54,9 @@ public class ClientAnimation : NetworkBehaviour {
 
 	// Update is called once per frame
 	void Update() {
+		if (!isLocalPlayer)
+			return;
+		
 		while (theStream.DataAvailable) {
 			string reading = theReader.ReadLine ();
 			string[] parts = reading.Split (new Char[] { ' ' });
@@ -66,9 +75,11 @@ public class ClientAnimation : NetworkBehaviour {
 				if (!kinects.Contains (parts [1]))
 					kinects.Add (parts [1]);
 
-				if (myKinect == "")
+				if (myKinect == parts [1])
+					lastGood = Time.time;
+				else if (myKinect == "" && (Time.time - lastGood) > 5)
 					myKinect = parts [1];
-			}			
+			}
 
 			if (parts[1] == myKinect)
 				switch (parts [0]) {
