@@ -8,7 +8,6 @@ using System.Collections.Generic;
 
 
 public class ClientAnimation : NetworkBehaviour {
-
 	TcpClient 		mySocket;
 	NetworkStream 	theStream;
 	StreamWriter 	theWriter;
@@ -56,7 +55,7 @@ public class ClientAnimation : NetworkBehaviour {
 	void Update() {
 		if (!isLocalPlayer)
 			return;
-		
+
 		while (theStream.DataAvailable) {
 			string reading = theReader.ReadLine ();
 			string[] parts = reading.Split (new Char[] { ' ' });
@@ -83,48 +82,48 @@ public class ClientAnimation : NetworkBehaviour {
 
 			if (parts[1] == myKinect)
 				switch (parts [0]) {
-				case "head":
-					break;
-				case "lefthand":
-					leftHand = pos * 0.5f + leftHand * 0.5f;
-					break;
-				case "righthand":
-					rightHand = pos * 0.5f + rightHand * 0.5f;
-					break;
-				case "leftshoulder":
-					leftShoulder = pos;
-					break;
-				case "rightshoulder":
-					rightShoulder = pos;
-					break;
-				case "leftelbow":
-					break;
-				case "rightelbow":
-					break;
-				case "leftknee":
-					break;
-				case "rightknee":
-					break;
-				case "lefthip":
-					leftHip = pos;
-					break;
-				case "righthip":
-					rightHip = pos;
-					break;
-				case "torso":
-					torso = pos;
-					break;
-				case "leftfoot":
-					leftFoot = pos;
-					break;
-				case "rightfoot":
-					rightFoot = pos;
-					break;
-				default:
-					print (parts [0]);
-					cardboard.transform.position = new Vector3 (100, 100, 100);
-					break;
-				}
+			case "head":
+				break;
+			case "lefthand":
+				leftHand = pos * 0.5f + leftHand * 0.5f;
+				break;
+			case "righthand":
+				rightHand = pos * 0.5f + rightHand * 0.5f;
+				break;
+			case "leftshoulder":
+				leftShoulder = pos;
+				break;
+			case "rightshoulder":
+				rightShoulder = pos;
+				break;
+			case "leftelbow":
+				break;
+			case "rightelbow":
+				break;
+			case "leftknee":
+				break;
+			case "rightknee":
+				break;
+			case "lefthip":
+				leftHip = pos;
+				break;
+			case "righthip":
+				rightHip = pos;
+				break;
+			case "torso":
+				torso = pos;
+				break;
+			case "leftfoot":
+				leftFoot = pos;
+				break;
+			case "rightfoot":
+				rightFoot = pos;
+				break;
+			default:
+				print (parts [0]);
+				cardboard.transform.position = new Vector3 (100, 100, 100);
+				break;
+			}
 		}
 
 		/*
@@ -141,6 +140,7 @@ public class ClientAnimation : NetworkBehaviour {
 
 		// <Shamelessly stolen from Unity Standard Assets.>
 
+		Vector3 midFeet = (leftFoot + rightFoot) / 2;
 
 
 		Vector3 shoulders = (leftShoulder + rightShoulder) / 2;
@@ -150,7 +150,7 @@ public class ClientAnimation : NetworkBehaviour {
 
 		if (motion.magnitude <= 0.05)
 			motion = Vector3.zero;
-		
+
 		velocity += (ForwardBack + LeftRight).normalized * 1f * Time.deltaTime + motion * 10f * Time.deltaTime;
 		Vector3 friction = velocity.normalized;
 		friction.y = 0;
@@ -159,7 +159,28 @@ public class ClientAnimation : NetworkBehaviour {
 		// get a normal for the surface that is being touched to move along it
 		RaycastHit hitInfo;
 		if (Physics.SphereCast (transform.position, characterController.radius, Vector3.down, out hitInfo,
-			    characterController.height / 2f, ~0, QueryTriggerInteraction.Ignore)) {
+			characterController.height / 2f, ~0, QueryTriggerInteraction.Ignore)) {
+
+
+			Vector3 turn = (torso - midFeet) * 0.2f;
+			turn.y = 0;
+
+			if (turn.magnitude <= 0.05) {
+				turn = Vector3.zero;
+			} else {
+				float Rt = 40.0f;
+				Vector3 centralVec = (Vector3.Project(turn, Vector3.Cross (velocity, hitInfo.normal))).normalized;
+				Vector3 centAcc = (Mathf.Pow (velocity.magnitude, 2.0f) / Rt) * centralVec;
+				Vector3 prevV = velocity;
+				velocity += centAcc * Time.deltaTime;
+				//				camera.transform.rotation += Quaternion.Angle
+
+				float angleSign = (turn.x < 0) ? -1 : 1;
+
+				cardboard.transform.rotation *= Quaternion.AngleAxis(angleSign*Vector3.Angle(prevV, velocity), hitInfo.normal);
+			}
+
+
 			Vector3 gravity = hitInfo.normal;
 			gravity.y = 0;
 			velocity += gravity * 0.02f;
@@ -167,13 +188,16 @@ public class ClientAnimation : NetworkBehaviour {
 			velocity += new Vector3 (0, -1, 0);
 		}
 
+
+
 		Vector3 desiredMove = Vector3.ProjectOnPlane(velocity, hitInfo.normal)  * moveScale;
 
-		characterController.Move (velocity * moveScale);
+		characterController.Move (desiredMove);
 
 		if (transform.position.y < -700 || transform.position.z < -20) {
 			transform.position = Vector3.zero;
 			velocity = Vector3.zero;
+			cardboard.transform.rotation = Quaternion.identity;
 		}
 
 		cardboard.transform.position = transform.position - new Vector3(0, -1.3f, 0.2f);
@@ -181,7 +205,7 @@ public class ClientAnimation : NetworkBehaviour {
 		// </ShamelesslyStolen>
 
 		//print (motion);
-	
+
 	}
 
 	void OnEnable(){
@@ -195,31 +219,31 @@ public class ClientAnimation : NetworkBehaviour {
 	void TriggerPulled() {
 		if (kinects.Count == 0)
 			return;
-		
+
 		myKinect = kinects[(kinects.FindIndex ((string p) => { return p == myKinect; }) + 1) % kinects.Count];
 	}
 
 	void OnAnimatorIK(int layerIndex) {
-		clientAnim.SetIKPositionWeight (AvatarIKGoal.LeftHand, rightHand.magnitude != 0 ? 1 : 0);
+		clientAnim.SetIKPositionWeight (AvatarIKGoal.LeftHand, 1);
 		clientAnim.SetIKPosition(AvatarIKGoal.LeftHand, clientAnim.bodyPosition + (rightHand - torso)); // <- intentional
 
-		clientAnim.SetIKPositionWeight (AvatarIKGoal.RightHand, leftHand.magnitude != 0 ? 1 : 0);
+		clientAnim.SetIKPositionWeight (AvatarIKGoal.RightHand, 1);
 		clientAnim.SetIKPosition(AvatarIKGoal.RightHand, clientAnim.bodyPosition + (leftHand - torso));
 
-		clientAnim.SetIKPositionWeight (AvatarIKGoal.LeftFoot, rightHand.magnitude != 0 ? 1 : 0);
+		clientAnim.SetIKPositionWeight (AvatarIKGoal.LeftFoot, 1);
 		clientAnim.SetIKPosition(AvatarIKGoal.LeftFoot, clientAnim.bodyPosition + (rightFoot - torso)); // <- intentional
 
-		clientAnim.SetIKPositionWeight (AvatarIKGoal.RightFoot, leftHand.magnitude != 0 ? 1 : 0);
+		clientAnim.SetIKPositionWeight (AvatarIKGoal.RightFoot, 1);
 		clientAnim.SetIKPosition(AvatarIKGoal.RightFoot, clientAnim.bodyPosition + (leftFoot - torso));
 
 		if (!isLocalPlayer)
 			return;
-		
+
 		clientAnim.bodyRotation = Quaternion.Euler (
 			0,
 			camera.transform.rotation.eulerAngles.y,
 			0
-			);
+		);
 
 		clientAnim.SetLookAtPosition (clientAnim.bodyPosition + new Vector3(0f, 0.5f, 0f) + camera.transform.forward);
 		clientAnim.SetLookAtWeight (1);
