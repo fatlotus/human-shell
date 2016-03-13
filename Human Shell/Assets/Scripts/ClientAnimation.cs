@@ -155,7 +155,7 @@ public class ClientAnimation : NetworkBehaviour {
 		Vector3 friction = velocity.normalized;
 		friction.y = 0;
 		velocity -= friction.normalized * Time.deltaTime * 0.1f;
-	
+
 		// get a normal for the surface that is being touched to move along it
 		RaycastHit hitInfo;
 		if (Physics.SphereCast (transform.position, characterController.radius, Vector3.down, out hitInfo,
@@ -167,11 +167,9 @@ public class ClientAnimation : NetworkBehaviour {
 			velocity += new Vector3 (0, -1, 0);
 		}
 
-
-
 		Vector3 desiredMove = Vector3.ProjectOnPlane(velocity, hitInfo.normal)  * moveScale;
 
-		characterController.Move (desiredMove);
+		characterController.Move (velocity * moveScale);
 
 		if (transform.position.y < -700 || transform.position.z < -20) {
 			transform.position = Vector3.zero;
@@ -202,16 +200,16 @@ public class ClientAnimation : NetworkBehaviour {
 	}
 
 	void OnAnimatorIK(int layerIndex) {
-		clientAnim.SetIKPositionWeight (AvatarIKGoal.LeftHand, 1);
+		clientAnim.SetIKPositionWeight (AvatarIKGoal.LeftHand, rightHand.magnitude != 0 ? 1 : 0);
 		clientAnim.SetIKPosition(AvatarIKGoal.LeftHand, clientAnim.bodyPosition + (rightHand - torso)); // <- intentional
 
-		clientAnim.SetIKPositionWeight (AvatarIKGoal.RightHand, 1);
+		clientAnim.SetIKPositionWeight (AvatarIKGoal.RightHand, leftHand.magnitude != 0 ? 1 : 0);
 		clientAnim.SetIKPosition(AvatarIKGoal.RightHand, clientAnim.bodyPosition + (leftHand - torso));
 
-		clientAnim.SetIKPositionWeight (AvatarIKGoal.LeftFoot, 1);
+		clientAnim.SetIKPositionWeight (AvatarIKGoal.LeftFoot, rightHand.magnitude != 0 ? 1 : 0);
 		clientAnim.SetIKPosition(AvatarIKGoal.LeftFoot, clientAnim.bodyPosition + (rightFoot - torso)); // <- intentional
 
-		clientAnim.SetIKPositionWeight (AvatarIKGoal.RightFoot, 1);
+		clientAnim.SetIKPositionWeight (AvatarIKGoal.RightFoot, leftHand.magnitude != 0 ? 1 : 0);
 		clientAnim.SetIKPosition(AvatarIKGoal.RightFoot, clientAnim.bodyPosition + (leftFoot - torso));
 
 		if (!isLocalPlayer)
