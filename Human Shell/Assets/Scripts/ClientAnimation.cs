@@ -195,7 +195,7 @@ public class ClientAnimation : NetworkBehaviour {
 			float characterArea = height * characterController.radius - 2.0f * characterController.radius + Mathf.PI * Mathf.Pow (characterController.radius, 2.0f);
 			float drag = 5f * characterArea * 0.04f * Mathf.Pow(0.5f, 2.0f) * 0.42f;
 
-			velocity += drag * directionWind;
+//			velocity += drag * directionWind;
 
 		} else {
 			velocity += new Vector3 (0, -1, 0);
@@ -219,14 +219,16 @@ public class ClientAnimation : NetworkBehaviour {
 
 		//print (motion);
 
+		kinects.Sort ();
+
 		int index = kinects.FindIndex ((string p) => {
 			return p == myKinect;
 		});
 
 		if (index < 0)
-			helpfulText.text = "???";
+			helpfulText.text = "Kinect ??? of " + kinects.Count;
 		else
-			helpfulText.text = "Kinect " + index;
+			helpfulText.text = "Kinect " + (index + 1) + " of " + kinects.Count;
 	}
 
 	void OnEnable(){

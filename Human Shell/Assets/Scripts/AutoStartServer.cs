@@ -7,7 +7,7 @@ public class AutoStartServer : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		if (Application.platform == RuntimePlatform.Android) {
-			GetComponent<NetworkManager> ().networkAddress = "metapod.cs.uchicago.edu";
+			GetComponent<NetworkManager> ().networkAddress = "spearow.cs.uchicago.edu";
 			GetComponent<NetworkManager> ().StartClient ();
 		} else {
 			GetComponent<NetworkManager> ().StartHost ();
