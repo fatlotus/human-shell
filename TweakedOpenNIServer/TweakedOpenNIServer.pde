@@ -55,7 +55,7 @@ void setup()
   // enable skeleton generation for all joints
   context.enableUser();
 
-  client = new Client(this, "linux3.cs.uchicago.edu", 9000);
+  client = new Client(this, "linux2.cs.uchicago.edu", 9000);
 
  }
 
@@ -66,6 +66,10 @@ void setup()
 void send(int user, String joint, int model) {
   PVector pos = new PVector();
   context.getJointPositionSkeleton(user, model, pos);
+  
+  if (!client.active())
+    client = new Client(this, "linux3.cs.uchicago.edu", 9000);
+  
   client.write(joint + " " + pos.x + " " + pos.y + " " + pos.z + "\n");
 }
 
@@ -85,7 +89,6 @@ void draw()
   for (int i = 0; i < userList.length; i++) {
      
     if(context.isTrackingSkeleton(userList[i])) {
-      println("Got data!");
       send(userList[i], "head", SimpleOpenNI.SKEL_HEAD);
       send(userList[i], "lefthand", SimpleOpenNI.SKEL_LEFT_HAND);
       send(userList[i], "righthand", SimpleOpenNI.SKEL_RIGHT_HAND);

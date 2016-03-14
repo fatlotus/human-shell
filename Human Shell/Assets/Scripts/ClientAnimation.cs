@@ -15,6 +15,7 @@ public class ClientAnimation : NetworkBehaviour {
 
 	private GameObject cardboard;
 	private GameObject camera;
+	private TextMesh helpfulText;
 
 	private Animator clientAnim;
 	private Vector3 leftHand, rightHand, torso, leftFoot, rightFoot;
@@ -35,7 +36,7 @@ public class ClientAnimation : NetworkBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		mySocket 	= new TcpClient ("linux3.cs.uchicago.edu", 9000);
+		mySocket 	= new TcpClient ("linux2.cs.uchicago.edu", 9000);
 		theStream 	= mySocket.GetStream();
 		theWriter 	= new StreamWriter(theStream);
 		theReader 	= new StreamReader(theStream);
@@ -45,6 +46,8 @@ public class ClientAnimation : NetworkBehaviour {
 
 		cardboard = GameObject.Find ("Scene_Cardboard");
 		camera = cardboard.transform.GetChild (0).gameObject;
+
+		helpfulText = GameObject.Find ("HUD").GetComponent<TextMesh> ();
 
 		velocity = new Vector3 ();
 
@@ -184,6 +187,16 @@ public class ClientAnimation : NetworkBehaviour {
 			Vector3 gravity = hitInfo.normal;
 			gravity.y = 0;
 			velocity += gravity * 0.02f;
+
+			Vector3 directionWind = new Vector3 (Mathf.Sin (Time.time), 0, Mathf.Cos (5.0f*Time.time)).normalized;
+
+			float height = (shoulders - midFeet).magnitude;
+
+			float characterArea = height * characterController.radius - 2.0f * characterController.radius + Mathf.PI * Mathf.Pow (characterController.radius, 2.0f);
+			float drag = 5f * characterArea * 0.04f * Mathf.Pow(0.5f, 2.0f) * 0.42f;
+
+			velocity += drag * directionWind;
+
 		} else {
 			velocity += new Vector3 (0, -1, 0);
 		}
@@ -206,6 +219,14 @@ public class ClientAnimation : NetworkBehaviour {
 
 		//print (motion);
 
+		int index = kinects.FindIndex ((string p) => {
+			return p == myKinect;
+		});
+
+		if (index < 0)
+			helpfulText.text = "???";
+		else
+			helpfulText.text = "Kinect " + index;
 	}
 
 	void OnEnable(){
