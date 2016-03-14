@@ -181,6 +181,7 @@ public class ClientAnimation : NetworkBehaviour {
 				float angleSign = (turn.x < 0) ? -1 : 1;
 
 				cardboard.transform.rotation *= Quaternion.AngleAxis(angleSign*Vector3.Angle(prevV, velocity), hitInfo.normal);
+				transform.rotation *= Quaternion.AngleAxis(angleSign*Vector3.Angle(prevV, velocity), hitInfo.normal);
 			}
 
 
@@ -195,7 +196,7 @@ public class ClientAnimation : NetworkBehaviour {
 			float characterArea = height * characterController.radius - 2.0f * characterController.radius + Mathf.PI * Mathf.Pow (characterController.radius, 2.0f);
 			float drag = 5f * characterArea * 0.04f * Mathf.Pow(0.5f, 2.0f) * 0.42f;
 
-//			velocity += drag * directionWind;
+			velocity += drag * directionWind;
 
 		} else {
 			velocity += new Vector3 (0, -1, 0);

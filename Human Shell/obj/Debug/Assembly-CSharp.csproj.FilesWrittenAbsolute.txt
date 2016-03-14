@@ -72,3 +72,5 @@
 /Users/admin/Desktop/human-shell/Human Shell/Temp/bin/Debug/Unity.CecilTools.dll
 /Users/admin/Desktop/human-shell/Human Shell/Temp/bin/Debug/Mono.Cecil.Pdb.dll
 /Users/admin/Desktop/human-shell/Human Shell/Temp/bin/Debug/Mono.Cecil.Mdb.dll
+/Users/slights/human-shell/Human Shell/Temp/bin/Debug/Assembly-CSharp-firstpass.dll
+/Users/slights/human-shell/Human Shell/Temp/bin/Debug/Assembly-CSharp-firstpass.dll.mdb
