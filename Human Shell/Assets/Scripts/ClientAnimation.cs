@@ -174,8 +174,8 @@ public class ClientAnimation : NetworkBehaviour {
 
 				float angleSign = (turn.x < 0) ? -1 : 1;
 
-				cardboard.transform.rotation *= Quaternion.AngleAxis(angleSign*Vector3.Angle(prevV, velocity), hitInfo.normal);
-				transform.rotation *= Quaternion.AngleAxis(angleSign*Vector3.Angle(prevV, velocity), hitInfo.normal);
+				cardboard.transform.rotation *= Quaternion.AngleAxis(angleSign*Vector3.Angle(prevV, velocity), camera.transform.up);
+//				transform.rotation *= Quaternion.AngleAxis(angleSign*Vector3.Angle(prevV, velocity), hitInfo.normal);
 			}
 				
 			/* Gravity */
@@ -206,8 +206,8 @@ public class ClientAnimation : NetworkBehaviour {
 		characterController.Move (desiredMove);
 
 		if (transform.position.z > 1967 || transform.position.z < -20) {
-			transform.position = new Vector3(0.0f, 40.0f, 0.0f);
-			//velocity = Vector3.zero;
+			transform.position = new Vector3(0.0f, 0.0f, 0.0f);
+			velocity = Vector3.zero;
 			cardboard.transform.rotation = Quaternion.identity;
 		}
 
