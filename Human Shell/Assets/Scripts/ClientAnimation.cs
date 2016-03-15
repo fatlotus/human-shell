@@ -23,6 +23,8 @@ public class ClientAnimation : NetworkBehaviour {
 
 	[SyncVar]
 	private Vector3 velocity;
+	[SyncVar]
+	private Vector3 acceleration;
 
 	private List<String> kinects;
 
@@ -49,7 +51,8 @@ public class ClientAnimation : NetworkBehaviour {
 
 		helpfulText = GameObject.Find ("HUD").GetComponent<TextMesh> ();
 
-		velocity = new Vector3 ();
+		velocity = new Vector3 (0, 0, 0);
+		acceleration = new Vector3 (0, 0, 0);
 
 		kinects = new List<String> ();
 	}
@@ -129,42 +132,32 @@ public class ClientAnimation : NetworkBehaviour {
 			}
 		}
 
-		/*
-		if (!isLocalPlayer) {
-			return;
-		}
-		*/
-
-		//var x = Input.GetAxis ("Horizontal") * moveScale;
-		//var z = Input.GetAxis ("Vertical") * moveScale;
-
-		Vector3 LeftRight		= Input.GetAxis("Vertical") * Vector3.Normalize(camera.transform.forward);
-		Vector3 ForwardBack 	= Input.GetAxis("Horizontal") * Vector3.Normalize(camera.transform.right);
+		Vector3 LeftRight	= Input.GetAxis("Vertical") * Vector3.Normalize(camera.transform.forward);
+		Vector3 ForwardBack = Input.GetAxis("Horizontal") * Vector3.Normalize(camera.transform.right);
 
 		// <Shamelessly stolen from Unity Standard Assets.>
-
-		Vector3 midFeet = (leftFoot + rightFoot) / 2;
-
-
-		Vector3 shoulders = (leftShoulder + rightShoulder) / 2;
-		Vector3 hips = (leftHip + rightHip) / 2;
-		Vector3 motion = (shoulders - hips) * 0.4f;
+		Vector3 midFeet 	= (leftFoot + rightFoot) / 2;
+		Vector3 shoulders 	= (leftShoulder + rightShoulder) / 2;
+		Vector3 hips 		= (leftHip + rightHip) / 2;
+		Vector3 motion 		= (shoulders - hips) * 0.4f;
 		motion.y = 0;
 
 		if (motion.magnitude <= 0.05)
 			motion = Vector3.zero;
 
-		velocity += (ForwardBack + LeftRight).normalized * 1f * Time.deltaTime + motion * 10f * Time.deltaTime;
-		Vector3 friction = velocity.normalized;
-		friction.y = 0;
-		velocity -= friction.normalized * Time.deltaTime * 0.1f;
+		velocity += (ForwardBack + LeftRight).normalized * 1f * Time.deltaTime + motion * 50f * Time.deltaTime;
+
+//		Vector3 friction = velocity.normalized;
+//		friction.y = 0;
+//
+//		velocity -= friction.normalized * Time.deltaTime * 0.1f;
 
 		// get a normal for the surface that is being touched to move along it
 		RaycastHit hitInfo;
 		if (Physics.SphereCast (transform.position, characterController.radius, Vector3.down, out hitInfo,
 			characterController.height / 2f, ~0, QueryTriggerInteraction.Ignore)) {
 
-
+			/* Turn */
 			Vector3 turn = (torso - midFeet) * 0.2f;
 			turn.y = 0;
 
@@ -183,34 +176,33 @@ public class ClientAnimation : NetworkBehaviour {
 				cardboard.transform.rotation *= Quaternion.AngleAxis(angleSign*Vector3.Angle(prevV, velocity), hitInfo.normal);
 				transform.rotation *= Quaternion.AngleAxis(angleSign*Vector3.Angle(prevV, velocity), hitInfo.normal);
 			}
+				
+			/* Gravity */
+//			Vector3 gravity = hitInfo.normal;
+//			gravity.y = 0;
+//			velocity += gravity * 0.02f;
 
-
-			Vector3 gravity = hitInfo.normal;
-			gravity.y = 0;
-			velocity += gravity * 0.02f;
-
-			Vector3 directionWind = new Vector3 (Mathf.Sin (Time.time), 0, Mathf.Cos (5.0f*Time.time)).normalized;
-
-			float height = (shoulders - midFeet).magnitude;
-
-			float characterArea = height * characterController.radius - 2.0f * characterController.radius + Mathf.PI * Mathf.Pow (characterController.radius, 2.0f);
-			float drag = 5f * characterArea * 0.04f * Mathf.Pow(0.5f, 2.0f) * 0.42f;
-
-			velocity += drag * directionWind;
+			/* Calculate net acceleration */
+			acceleration = new Vector3 (0, 0, 0);
+			acceleration += Drag (1.0f);//(shoulders - midFeet).magnitude);
+			acceleration -= 9.8f * new Vector3(0.0f, 9.8f, 0.0f);
+			acceleration -= 0.1f * velocity.normalized;
 
 		} else {
 			velocity += new Vector3 (0, -1, 0);
 		}
 
 
+		Vector3 desiredMove = (acceleration * Time.deltaTime * Time.deltaTime + Vector3.ProjectOnPlane(velocity, hitInfo.normal) * Time.deltaTime);
 
-		Vector3 desiredMove = Vector3.ProjectOnPlane(velocity, hitInfo.normal)  * moveScale;
+
+//		Vector3 desiredMove = Vector3.ProjectOnPlane(velocity, hitInfo.normal) * moveScale ;
 
 		characterController.Move (desiredMove);
 
-		if (transform.position.y < -700 || transform.position.z < -20) {
-			transform.position = Vector3.zero;
-			velocity = Vector3.zero;
+		if (transform.position.z > 1967 || transform.position.z < -20) {
+			transform.position = new Vector3(0.0f, 40.0f, 0.0f);
+			//velocity = Vector3.zero;
 			cardboard.transform.rotation = Quaternion.identity;
 		}
 
@@ -230,6 +222,15 @@ public class ClientAnimation : NetworkBehaviour {
 			helpfulText.text = "Kinect ??? of " + kinects.Count;
 		else
 			helpfulText.text = "Kinect " + (index + 1) + " of " + kinects.Count;
+	}
+
+	Vector3 Drag (float h) {
+		Vector3 directionWind = new Vector3 (Mathf.Sin (10.0f*Time.time), 0, Mathf.Cos (5.0f*Time.time)).normalized;
+
+		float characterArea = h * characterController.radius - 2.0f * characterController.radius + Mathf.PI * Mathf.Pow (characterController.radius, 2.0f);
+		float drag = 5f * characterArea * 0.04f * Mathf.Pow(0.5f, 2.0f) * 0.42f;
+
+		return drag * directionWind;
 	}
 
 	void OnEnable(){
