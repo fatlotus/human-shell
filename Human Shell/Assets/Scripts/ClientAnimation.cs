@@ -139,13 +139,13 @@ public class ClientAnimation : NetworkBehaviour {
 		Vector3 midFeet 	= (leftFoot + rightFoot) / 2;
 		Vector3 shoulders 	= (leftShoulder + rightShoulder) / 2;
 		Vector3 hips 		= (leftHip + rightHip) / 2;
-		Vector3 motion 		= (shoulders - hips) * 0.4f;
+		Vector3 motion 		= (shoulders - hips) * 0.8f;
 		motion.y = 0;
 
 		if (motion.magnitude <= 0.05)
 			motion = Vector3.zero;
 
-		velocity += (ForwardBack + LeftRight).normalized * 1f * Time.deltaTime + motion * 50f * Time.deltaTime;
+		velocity += (ForwardBack + LeftRight).normalized * 8f * Time.deltaTime + motion * 50f * Time.deltaTime;
 
 //		Vector3 friction = velocity.normalized;
 //		friction.y = 0;
@@ -185,15 +185,18 @@ public class ClientAnimation : NetworkBehaviour {
 			/* Calculate net acceleration */
 			acceleration = new Vector3 (0, 0, 0);
 			acceleration += Drag (1.0f);//(shoulders - midFeet).magnitude);
-			acceleration -= 9.8f * new Vector3(0.0f, 9.8f, 0.0f);
+//			acceleration -= 9.8f * new Vector3(0.0f, 9.8f, 0.0f);
 			acceleration -= 0.1f * velocity.normalized;
 
 		} else {
-			velocity += new Vector3 (0, -1, 0);
+			acceleration = new Vector3 (0, -9.8f, 0);
 		}
 
+		velocity += acceleration * Time.deltaTime;
 
-		Vector3 desiredMove = (acceleration * Time.deltaTime * Time.deltaTime + Vector3.ProjectOnPlane(velocity, hitInfo.normal) * Time.deltaTime);
+		Vector3 desiredMove = velocity * Time.deltaTime;
+
+//		Vector3 desiredMove = (acceleration * Time.deltaTime * Time.deltaTime + Vector3.ProjectOnPlane(velocity, hitInfo.normal) * Time.deltaTime);
 
 
 //		Vector3 desiredMove = Vector3.ProjectOnPlane(velocity, hitInfo.normal) * moveScale ;
