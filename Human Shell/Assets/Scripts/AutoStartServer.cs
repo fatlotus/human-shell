@@ -10,7 +10,7 @@ public class AutoStartServer : MonoBehaviour {
 			GetComponent<NetworkManager> ().networkAddress = "spearow.cs.uchicago.edu";
 			GetComponent<NetworkManager> ().StartClient ();
 		} else {
-			GetComponent<NetworkManager> ().StartHost ();
+			GetComponent<NetworkManager> ().StartServer ();
 		}
 	}
 	

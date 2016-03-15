@@ -25,6 +25,7 @@ public class ClientAnimation : NetworkBehaviour {
 	private Vector3 velocity;
 	[SyncVar]
 	private Vector3 acceleration;
+	private Vector3 previousPos;
 
 	private List<String> kinects;
 
@@ -187,7 +188,8 @@ public class ClientAnimation : NetworkBehaviour {
 			acceleration += Drag (1.0f);//(shoulders - midFeet).magnitude);
 //			acceleration -= 9.8f * new Vector3(0.0f, 9.8f, 0.0f);
 			acceleration -= 0.1f * velocity.normalized;
-
+			Vector3 slopeGravity = new Vector3 (0, -9.8f, 0) + Vector3.Project (new Vector3 (0, -9.8f, 0), Vector3.Normalize (transform.position - previousPos));
+			acceleration += 10.0f*slopeGravity;
 		} else {
 			acceleration = new Vector3 (0, -9.8f, 0);
 		}
@@ -225,6 +227,8 @@ public class ClientAnimation : NetworkBehaviour {
 			helpfulText.text = "Kinect ??? of " + kinects.Count;
 		else
 			helpfulText.text = "Kinect " + (index + 1) + " of " + kinects.Count;
+
+		previousPos = transform.position;
 	}
 
 	Vector3 Drag (float h) {
